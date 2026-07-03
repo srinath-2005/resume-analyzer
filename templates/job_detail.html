@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.title }} - Applicant Ranking & Shortlisting{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <a href="{{ url_for('company_dashboard') }}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Job Postings</a>
+    <div class="title-action-row">
+        <div>
+            <h1>{{ job.title }}</h1>
+            <p class="posted-date-sub"><i class="fa-regular fa-calendar"></i> Posted on {{ job.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Grid Layout: Job description and Upload -->
+<div class="job-detail-grid">
+    <!-- Required Skills and Details -->
+    <div class="glass-panel job-info-panel">
+        <h2 class="section-title"><i class="fa-solid fa-file-invoice"></i> Position Details</h2>
+        
+        <div class="jd-section">
+            <h3 class="subsection-title">Required Skills (Auto-Extracted)</h3>
+            <div class="skills-chips-wrapper">
+                {% if required_skills %}
+                    {% for skill in required_skills %}
+                        <span class="skill-chip active-chip"><i class="fa-solid fa-tag"></i> {{ skill }}</span>
+                    {% endfor %}
+                {% else %}
+                    <span class="no-skills-msg">No specific technical skills extracted. The system will rely primarily on general text similarity.</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="jd-section">
+            <h3 class="subsection-title">Full Description</h3>
+            <div class="jd-scrollable-box">
+                {{ job.description | replace('\n', '<br>') | safe }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Upload Resumes -->
+    <div class="glass-panel upload-candidates-panel">
+        <h2 class="section-title"><i class="fa-solid fa-upload"></i> Upload Candidates</h2>
+        <p class="section-desc">Select or drop multiple resumes to parse and rank them against this job profile simultaneously.</p>
+        
+        <form action="{{ url_for('upload_resumes_for_job', job_id=job.id) }}" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <div class="upload-zone" id="bulk-drop-zone">
+                    <input type="file" id="bulk-resume-input" name="resumes" accept=".pdf,.docx,.doc,.txt" multiple required class="upload-input">
+                    <div class="upload-zone-content">
+                        <i class="fa-solid fa-folder-open upload-icon text-accent"></i>
+                        <p class="upload-text">Drag & drop multiple resume files here or <span class="highlight">browse</span></p>
+                        <p class="upload-hint">Supported formats: PDF, DOCX, TXT (Upload multiple at once)</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="bulk-file-list" class="bulk-file-list" style="display: none;">
+                <h4>Selected Files (<span id="bulk-count">0</span>):</h4>
+                <ul id="selected-files-ul"></ul>
+            </div>
+            
+            <button type="submit" class="btn btn-accent btn-block btn-lg" id="bulk-submit-btn">
+                <i class="fa-solid fa-arrows-spin"></i> Parse & Shortlist Resumes
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Candidate Shortlist Rankings -->
+<div class="glass-panel shortlist-ranking-panel">
+    <div class="panel-header-row">
+        <h2 class="section-title"><i class="fa-solid fa-ranking-star"></i> Shortlisted Candidates</h2>
+        <span class="badge badge-accent">{{ matches|length }} Shortlisted</span>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="shortlist-table">
+            <thead>
+                <tr>
+                    <th style="width: 8%;">Rank</th>
+                    <th style="width: 25%;">Candidate</th>
+                    <th style="width: 20%;">File Name</th>
+                    <th style="width: 12%;">ATS Score</th>
+                    <th style="width: 15%;">Text Similarity</th>
+                    <th style="width: 15%;">Skill Match</th>
+                    <th style="width: 10%;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if matches %}
+                    {% for match in matches %}
+                        <tr>
+                            <td>
+                                <span class="rank-badge {% if loop.index == 1 %}rank-1{% elif loop.index == 2 %}rank-2{% elif loop.index == 3 %}rank-3{% endif %}">
+                                    {{ loop.index }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="candidate-info-cell">
+                                    <span class="cand-name">{{ match.resume.candidate_name }}</span>
+                                    <span class="cand-meta"><i class="fa-regular fa-envelope"></i> {{ match.resume.email or 'N/A' }}</span>
+                                    <span class="cand-meta"><i class="fa-solid fa-phone"></i> {{ match.resume.phone or 'N/A' }}</span>
+                                </div>
+                            </td>
+                            <td><span class="table-filename"><i class="fa-solid fa-file-lines"></i> {{ match.resume.filename }}</span></td>
+                            <td>
+                                <span class="score-badge {% if match.ats_score >= 75 %}score-high{% elif match.ats_score >= 50 %}score-mid{% else %}score-low{% endif %}">
+                                    {{ match.ats_score }}%
+                                </span>
+                            </td>
+                            <td>
+                                <div class="mini-progress-row">
+                                    <span>{{ match.text_similarity }}%</span>
+                                    <div class="progress-bar-bg mini-bar"><div class="progress-bar" style="width: {{ match.text_similarity }}%"></div></div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="mini-progress-row">
+                                    <span>{{ match.skill_overlap_score }}%</span>
+                                    <div class="progress-bar-bg mini-bar"><div class="progress-bar" style="width: {{ match.skill_overlap_score }}%"></div></div>
+                                </div>
+                            </td>
+                            <td>
+                                <button onclick="openCandidateDrawer({{ match.id }})" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-magnifying-glass-chart"></i> View Report
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="fa-solid fa-users-slash empty-icon"></i>
+                                <p class="empty-title">No candidates matched yet</p>
+                                <p class="empty-subtitle">Upload applicant resumes in the panel above to populate the shortlist.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Dynamic Slide-Over Candidate Report Drawer -->
+<div id="candidate-drawer" class="drawer-overlay" style="display: none;">
+    <div class="drawer-panel glass-panel">
+        <div class="drawer-header">
+            <div>
+                <h2 id="drawer-cand-name">Candidate Name</h2>
+                <p id="drawer-cand-contact" class="drawer-subtitle">email | phone</p>
+            </div>
+            <button class="drawer-close-btn" onclick="closeCandidateDrawer()">&times;</button>
+        </div>
+        
+        <div class="drawer-content-scroll">
+            <!-- Score Ring Row -->
+            <div class="drawer-scores-row">
+                <div class="drawer-score-circle-card text-center">
+                    <h4>ATS Match Score</h4>
+                    <div class="chart-container-ring mini-ring">
+                        <canvas id="drawerAtsChart"></canvas>
+                        <div class="score-overlay-text mini-overlay">
+                            <span id="drawer-ats-score">0</span>%
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="drawer-score-breakdown-card">
+                    <h4>Scores</h4>
+                    <div class="breakdown-item">
+                        <div class="breakdown-info"><span>Text Cosine Match</span><span id="drawer-text-sim">0%</span></div>
+                        <div class="progress-bar-bg mini-bar"><div class="progress-bar" id="drawer-text-progress" style="width: 0%"></div></div>
+                    </div>
+                    <div class="breakdown-item">
+                        <div class="breakdown-info"><span>Skill Overlap Score</span><span id="drawer-skill-sim">0%</span></div>
+                        <div class="progress-bar-bg mini-bar"><div class="progress-bar" id="drawer-skill-progress" style="width: 0%"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skills Block -->
+            <div class="drawer-section">
+                <h4>Skill Gaps & Overlap</h4>
+                <div class="skills-split-grid">
+                    <div class="skills-box matched-skills-box">
+                        <h5><i class="fa-solid fa-circle-check text-success"></i> Matched Skills</h5>
+                        <div id="drawer-matched-skills" class="skills-chips-wrapper"></div>
+                    </div>
+                    <div class="skills-box missing-skills-box">
+                        <h5><i class="fa-solid fa-circle-xmark text-danger"></i> Missing Target Skills</h5>
+                        <div id="drawer-missing-skills" class="skills-chips-wrapper"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendations list -->
+            <div class="drawer-section">
+                <h4>Structure & Improvement Checklist</h4>
+                <div id="drawer-recommendations" class="checklist-wrapper"></div>
+            </div>
+
+            <!-- Experience and Sentence improvements -->
+            <div class="drawer-section">
+                <h4>Experience Rewrite Suggestions</h4>
+                <div class="rewrites-table-wrapper">
+                    <table class="rewrites-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50%;">Original Sentence</th>
+                                <th style="width: 50%;">Proposed Improvement</th>
+                            </tr>
+                        </thead>
+                        <tbody id="drawer-rewrites"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Bulk drag and drop UI handler
+    const bulkDropZone = document.getElementById('bulk-drop-zone');
+    const bulkInput = document.getElementById('bulk-resume-input');
+    const bulkFileList = document.getElementById('bulk-file-list');
+    const bulkCount = document.getElementById('bulk-count');
+    const selectedFilesUl = document.getElementById('selected-files-ul');
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        bulkDropZone.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        bulkDropZone.addEventListener(eventName, () => bulkDropZone.classList.add('highlight'), false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        bulkDropZone.addEventListener(eventName, () => bulkDropZone.classList.remove('highlight'), false);
+    });
+    
+    bulkDropZone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if(files.length) {
+            bulkInput.files = files;
+            updateFileList(files);
+        }
+    });
+    
+    bulkInput.addEventListener('change', (e) => {
+        if(e.target.files.length) {
+            updateFileList(e.target.files);
+        }
+    });
+    
+    function updateFileList(files) {
+        selectedFilesUl.innerHTML = '';
+        bulkCount.textContent = files.length;
+        
+        for(let i=0; i<files.length; i++) {
+            const li = document.createElement('li');
+            li.innerHTML = `<i class="fa-solid fa-file-arrow-up"></i> ${files[i].name} <span class="file-size">(${(files[i].size / 1024).toFixed(1)} KB)</span>`;
+            selectedFilesUl.appendChild(li);
+        }
+        
+        bulkFileList.style.display = 'block';
+    }
+</script>
+{% endblock %}

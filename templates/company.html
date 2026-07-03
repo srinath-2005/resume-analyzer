@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Recruiter Dashboard - AuraResume{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <a href="{{ url_for('index') }}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+    <h1>Recruiter Job Dashboard</h1>
+    <p>Manage job profiles, auto-extract required technical skills, bulk upload applicant resumes, and sort top candidates.</p>
+</div>
+
+<div class="recruiter-main-grid">
+    
+    <!-- Create a New Job Posting -->
+    <div class="glass-panel create-job-card">
+        <h2 class="section-title"><i class="fa-solid fa-square-plus"></i> Create New Job Posting</h2>
+        
+        <form action="{{ url_for('create_job') }}" method="POST">
+            <div class="form-group">
+                <label for="title" class="form-label">Job Title / Designation</label>
+                <input type="text" id="title" name="title" required class="form-control" placeholder="e.g. Senior Python & AWS Engineer">
+            </div>
+            
+            <div class="form-group">
+                <label for="description" class="form-label">Detailed Job Description</label>
+                <textarea id="description" name="description" rows="12" required class="form-control" 
+                    placeholder="Describe roles, responsibilities, requirements, and required technologies. Key skills like 'Python', 'React', 'Docker' will be extracted automatically using our NER parser."></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-accent btn-block btn-lg">
+                <i class="fa-solid fa-circle-check"></i> Post Job Position
+            </button>
+        </form>
+    </div>
+    
+    <!-- Active Job Postings List -->
+    <div class="glass-panel active-jobs-card">
+        <div class="panel-header-row">
+            <h2 class="section-title"><i class="fa-solid fa-list-ul"></i> Active Positions</h2>
+            <div class="badge badge-primary"><span id="job-count">{{ jobs|length }}</span> Active</div>
+        </div>
+        
+        <p class="section-desc">Select a job post below to upload resumes and view matching candidates ranked by similarity score.</p>
+        
+        <div class="job-list-wrapper">
+            {% if jobs %}
+                {% for job in jobs %}
+                    <div class="job-list-item glass-card">
+                        <div class="job-item-header">
+                            <h3 class="job-item-title">{{ job.title }}</h3>
+                            <span class="job-item-date"><i class="fa-regular fa-calendar"></i> {{ job.created_at.strftime('%Y-%m-%d') }}</span>
+                        </div>
+                        
+                        <!-- Snippet of JD -->
+                        <p class="job-item-snippet">{{ job.description[:140] }}...</p>
+                        
+                        <!-- Relationships count and actions -->
+                        <div class="job-item-footer">
+                            <span class="applicant-count"><i class="fa-solid fa-users"></i> {{ job.matches|length }} Applicants</span>
+                            <a href="{{ url_for('view_job', job_id=job.id) }}" class="btn btn-secondary btn-sm">
+                                Manage Applicants & Match <i class="fa-solid fa-angles-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state text-center">
+                    <i class="fa-solid fa-folder-open empty-icon"></i>
+                    <p class="empty-title">No job postings created yet</p>
+                    <p class="empty-subtitle">Fill out the form on the left to create your first active job description.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

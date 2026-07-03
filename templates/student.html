@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Resume Optimizer - AuraResume{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <a href="{{ url_for('index') }}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Home</a>
+    <h1>Candidate Resume Optimizer</h1>
+    <p>Analyze your resume against any job description, identify missing keywords, and optimize your experience bullet points.</p>
+</div>
+
+<div class="student-grid">
+    <!-- Upload and Configuration Panel -->
+    <div class="glass-panel parse-config-card">
+        <h2 class="section-title"><i class="fa-solid fa-sliders"></i> Analysis Settings</h2>
+        
+        <form id="analyze-form" enctype="multipart/form-data">
+            <!-- Resume File Upload -->
+            <div class="form-group">
+                <label class="form-label">Upload Resume (PDF, DOCX, TXT)</label>
+                <div class="upload-zone" id="drop-zone">
+                    <input type="file" id="resume-input" name="resume" accept=".pdf,.docx,.doc,.txt" required class="upload-input">
+                    <div class="upload-zone-content">
+                        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                        <p class="upload-text">Drag & drop your resume file here or <span class="highlight">browse</span></p>
+                        <p class="upload-hint">Supported formats: PDF, DOCX, TXT (Max 16MB)</p>
+                    </div>
+                </div>
+                <div id="file-info" class="file-info-badge" style="display: none;">
+                    <i class="fa-solid fa-file-pdf"></i> <span id="file-name-span">resume.pdf</span>
+                    <button type="button" id="remove-file-btn" class="remove-file-btn">&times;</button>
+                </div>
+            </div>
+
+            <!-- Job Description Type selection -->
+            <div class="form-group">
+                <label class="form-label">Target Job Description</label>
+                <div class="radio-toggle-group">
+                    <label class="radio-toggle-btn">
+                        <input type="radio" name="jd_type" value="preset" checked>
+                        <span>Select Posted Job</span>
+                    </label>
+                    <label class="radio-toggle-btn">
+                        <input type="radio" name="jd_type" value="custom">
+                        <span>Paste Custom Job</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Select Posted Job Dropdown -->
+            <div class="form-group" id="preset-jd-group">
+                <label for="job_id" class="form-label">Active Job Openings</label>
+                <select name="job_id" id="job_id" class="form-control">
+                    {% if jobs %}
+                        {% for job in jobs %}
+                            <option value="{{ job.id }}">{{ job.title }} (Posted {{ job.created_at.strftime('%Y-%m-%d') }})</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="">No postings available. Paste a custom job instead.</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <!-- Custom Job Description Textarea -->
+            <div class="form-group" id="custom-jd-group" style="display: none;">
+                <label for="custom_jd" class="form-label">Paste Job Description Text</label>
+                <textarea name="custom_jd" id="custom_jd" rows="8" class="form-control" placeholder="Paste the key responsibilities, requirements, and qualifications here..."></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary btn-block btn-lg" id="submit-btn">
+                <i class="fa-solid fa-rotate"></i> Run ATS Optimizer
+            </button>
+        </form>
+    </div>
+
+    <!-- Results Panel (Initially Hidden) -->
+    <div id="results-panel" class="results-container" style="display: none;">
+        
+        <!-- Score and Highlights -->
+        <div class="results-summary-row">
+            <!-- Score Ring -->
+            <div class="glass-panel score-gauge-card text-center">
+                <h3 class="card-subtitle">Overall ATS Score</h3>
+                <div class="chart-container-ring">
+                    <canvas id="atsScoreChart"></canvas>
+                    <div class="score-overlay-text">
+                        <span id="ats-score-num">0</span><span class="score-percent">%</span>
+                    </div>
+                </div>
+                <p id="score-phrase" class="score-phrase">Matching Profile</p>
+            </div>
+            
+            <!-- Secondary Scores -->
+            <div class="glass-panel match-breakdown-card">
+                <h3 class="card-subtitle">Match Breakdown</h3>
+                <div class="breakdown-item">
+                    <div class="breakdown-info">
+                        <span>Text Cosine Similarity</span>
+                        <span id="text-sim-val">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar" id="text-sim-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="breakdown-item">
+                    <div class="breakdown-info">
+                        <span>Core Skill Match Overlap</span>
+                        <span id="skill-sim-val">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar" id="skill-sim-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="breakdown-item">
+                    <div class="breakdown-info">
+                        <span>Section Completeness Audit</span>
+                        <span id="section-score-val">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar" id="section-score-progress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Skills Analysis (Matched vs Missing) -->
+        <div class="glass-panel skills-analysis-card">
+            <h2 class="section-title"><i class="fa-solid fa-code-compare"></i> Skill Gap Analysis</h2>
+            
+            <div class="skills-split-grid">
+                <!-- Matched Skills -->
+                <div class="skills-box matched-skills-box">
+                    <h3 class="skills-box-title"><i class="fa-solid fa-circle-check text-success"></i> Matched Skills (<span id="matched-skills-count">0</span>)</h3>
+                    <div id="matched-skills-chips" class="skills-chips-wrapper">
+                        <!-- Chips loaded by JS -->
+                    </div>
+                </div>
+                <!-- Missing Skills -->
+                <div class="skills-box missing-skills-box">
+                    <h3 class="skills-box-title"><i class="fa-solid fa-circle-xmark text-danger"></i> Missing Skills (<span id="missing-skills-count">0</span>)</h3>
+                    <div id="missing-skills-chips" class="skills-chips-wrapper">
+                        <!-- Chips loaded by JS -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Skill Gap Chart -->
+            <div class="chart-container-bar">
+                <canvas id="skillGapChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Recommendations Checklists -->
+        <div class="glass-panel recommendations-card">
+            <h2 class="section-title"><i class="fa-solid fa-list-check"></i> Resume Improvement Recommendations</h2>
+            <div id="recommendations-list" class="checklist-wrapper">
+                <!-- Checklist loaded by JS -->
+            </div>
+        </div>
+
+        <!-- Bullet-Point Optimizer -->
+        <div class="glass-panel rewriter-card">
+            <h2 class="section-title"><i class="fa-solid fa-pen-nib"></i> AI Sentence Re-writer & Bullet-Point Optimizer</h2>
+            <p class="section-desc">We scanned your Experience and Projects for weak passive action verbs. Here are suggested rewrites to emphasize action, metrics, and technical execution:</p>
+            
+            <div class="rewrites-table-wrapper">
+                <table class="rewrites-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 45%;">Original Resume Statement</th>
+                            <th style="width: 45%;">Suggested Impact Statement</th>
+                            <th style="width: 10%;">Core Guidance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rewrites-tbody">
+                        <!-- Loaded by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Skeleton Loading Screen -->
+    <div id="loader-panel" class="glass-panel text-center loading-container" style="display: none;">
+        <div class="spinner-orb"></div>
+        <h3 class="loading-title">Parsing & Preprocessing Resume...</h3>
+        <p class="loading-subtitle">Computing TF-IDF matrices, running Named Entity matching, and checking lexical similarity. This will take a moment...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Toggle between posted jobs and custom textarea inputs
+    const jdTypeRadios = document.querySelectorAll('input[name="jd_type"]');
+    const presetJdGroup = document.getElementById('preset-jd-group');
+    const customJdGroup = document.getElementById('custom-jd-group');
+
+    jdTypeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.value === 'preset') {
+                presetJdGroup.style.display = 'block';
+                customJdGroup.style.display = 'none';
+                document.getElementById('custom_jd').removeAttribute('required');
+            } else {
+                presetJdGroup.style.display = 'none';
+                customJdGroup.style.display = 'block';
+                document.getElementById('custom_jd').setAttribute('required', 'true');
+            }
+        });
+    });
+
+    // Drag and Drop implementation
+    const dropZone = document.getElementById('drop-zone');
+    const resumeInput = document.getElementById('resume-input');
+    const fileInfo = document.getElementById('file-info');
+    const fileNameSpan = document.getElementById('file-name-span');
+    const removeFileBtn = document.getElementById('remove-file-btn');
+
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.add('highlight'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => dropZone.classList.remove('highlight'), false);
+    });
+
+    dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if(files.length) {
+            resumeInput.files = files;
+            updateFileBadge(files[0].name);
+        }
+    }
+
+    resumeInput.addEventListener('change', (e) => {
+        if(e.target.files.length) {
+            updateFileBadge(e.target.files[0].name);
+        }
+    });
+
+    function updateFileBadge(name) {
+        fileNameSpan.textContent = name;
+        fileInfo.style.display = 'flex';
+        dropZone.style.display = 'none';
+    }
+
+    removeFileBtn.addEventListener('click', () => {
+        resumeInput.value = '';
+        fileInfo.style.display = 'none';
+        dropZone.style.display = 'block';
+    });
+</script>
+{% endblock %}

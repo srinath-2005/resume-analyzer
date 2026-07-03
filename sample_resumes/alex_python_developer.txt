@@ -1,0 +1,27 @@
+Alex Mercer
+alex.mercer@email.com | (555) 019-2834 | San Francisco, CA
+
+Professional Summary
+Highly motivated Software Engineer with 3+ years of experience specializing in Python backend systems, cloud deployments, and database schema optimizations. Proactive problem solver with excellent teamwork and system design skills.
+
+Education
+BS in Computer Science, University of California, Berkeley - 2022
+
+Technical Skills
+- Programming Languages: Python, SQL, Bash, Go
+- Web Frameworks: Flask, FastAPI, Django
+- Databases: PostgreSQL, Redis, SQLite
+- DevOps & Cloud: Docker, AWS (EC2, S3), Git, Jenkins
+- Concepts: REST APIs, Microservices, Agile Scrum, System Design
+
+Professional Experience
+Software Engineer | TechCore Systems | 2022 - Present
+- Responsible for writing backend code for high-throughput APIs.
+- Helped with the database query optimizations, reducing read times by 30%.
+- Worked on Docker containers for microservices deployment on AWS EC2.
+- Assisted in setting up CI/CD pipelines using Git and Jenkins.
+
+Personal Projects
+Data Parsing Engine
+- Built a custom parsing script in Python to index large JSON datasets into PostgreSQL.
+- Optimized performance using multi-threading, accelerating data ingestion rate.

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}AuraResume - Smart Resume Optimizer & Shortlisting System{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-badge">Next-Gen Talent Acquisition & Optimization</div>
+    <h1 class="hero-title">Elevate Your Career. <br><span class="gradient-text">Streamline Your Hiring.</span></h1>
+    <p class="hero-subtitle">
+        Leverage NLP tokenization and TF-IDF semantic calculations to compare candidate resumes against complex job profiles, maximize ATS compatibility, and shortlist top talent in seconds.
+    </p>
+</div>
+
+<!-- Role Selection Cards -->
+<div class="role-grid">
+    <!-- Student Card -->
+    <div class="role-card glass-panel fade-in">
+        <div class="card-icon student-icon">
+            <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <h2 class="card-title">For Candidates</h2>
+        <p class="card-desc">
+            Upload your resume, select your target job description, and instantly receive your ATS score. Identify critical skill gaps, weak phrasing, and download improved versions of your bullet points.
+        </p>
+        <div class="card-features">
+            <span><i class="fa-regular fa-circle-check"></i> Instant ATS Score (0-100)</span>
+            <span><i class="fa-regular fa-circle-check"></i> Skill Gap Analyzer</span>
+            <span><i class="fa-regular fa-circle-check"></i> Bullet-point Sentence Optimizer</span>
+            <span><i class="fa-regular fa-circle-check"></i> Structure Completeness Audit</span>
+        </div>
+        <a href="{{ url_for('student_dashboard') }}" class="btn btn-primary btn-block">
+            Optimize Resume <i class="fa-solid fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Company Card -->
+    <div class="role-card glass-panel fade-in">
+        <div class="card-icon company-icon">
+            <i class="fa-solid fa-briefcase"></i>
+        </div>
+        <h2 class="card-title">For Recruiters</h2>
+        <p class="card-desc">
+            Post target job positions and bulk upload candidate files. Let our NLP similarity matchers rank applicants from highest to lowest matching scores, helping you source the perfect fit instantly.
+        </p>
+        <div class="card-features">
+            <span><i class="fa-regular fa-circle-check"></i> Multi-Resume Bulk Parsing</span>
+            <span><i class="fa-regular fa-circle-check"></i> Rank Candidates by Relevance</span>
+            <span><i class="fa-regular fa-circle-check"></i> Automated Key Skill Extraction</span>
+            <span><i class="fa-regular fa-circle-check"></i> Detail Match Insight Panel</span>
+        </div>
+        <a href="{{ url_for('company_dashboard') }}" class="btn btn-accent btn-block">
+            Shortlist Candidates <i class="fa-solid fa-arrow-right"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Statistics / Feature Highlight Grid -->
+<div class="stats-section glass-panel">
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-number">10x</div>
+            <div class="stat-label">Faster Applicant Screening</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <div class="stat-number">95%</div>
+            <div class="stat-label">ATS Match Accuracy</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <div class="stat-number">Real-time</div>
+            <div class="stat-label">Skill Gap Visualizations</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

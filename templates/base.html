@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ATS Resume Analyzer & Shortlisting System{% endblock %}</title>
+    <!-- Google Fonts: Plus Jakarta Sans for ultra-modern UI typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for premium dynamic charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom styling -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dark-mode"> <!-- Default to sleek premium dark mode -->
+    
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="nav-logo">
+                <i class="fa-solid fa-wand-magic-sparkles logo-icon"></i>
+                <span class="logo-text">Aura<span class="highlight">Resume</span></span>
+            </a>
+            
+            <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}" class="nav-link {% if request.path == '/' %}active{% endif %}"><i class="fa-solid fa-house"></i> Home</a></li>
+                <li><a href="{{ url_for('student_dashboard') }}" class="nav-link {% if request.path == '/student' %}active{% endif %}"><i class="fa-solid fa-graduation-cap"></i> Student Portal</a></li>
+                <li><a href="{{ url_for('company_dashboard') }}" class="nav-link {% if request.path.startswith('/company') %}active{% endif %}"><i class="fa-solid fa-briefcase"></i> Company Portal</a></li>
+            </ul>
+            
+            <div class="nav-actions">
+                <button id="theme-toggle" class="theme-btn" title="Toggle Theme">
+                    <i class="fa-solid fa-sun icon-sun"></i>
+                    <i class="fa-solid fa-moon icon-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content wrapper -->
+    <main class="main-wrapper">
+        <div class="container">
+            <!-- Flash Alerts -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="alert-container">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} slide-in">
+                                <span class="alert-message"><i class="fa-solid fa-circle-info"></i> {{ message }}</span>
+                                <button class="alert-close" onclick="this.parentElement.style.display='none';">&times;</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2026 AuraResume. Smart Resume Optimization and Candidate Shortlisting Platform.</p>
+            <p class="footer-subtext">Powered by Natural Language Processing & TF-IDF Cosine Similarity</p>
+        </div>
+    </footer>
+
+    <!-- Global Client Script -->
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

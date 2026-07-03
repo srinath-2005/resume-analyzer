@@ -1,0 +1,27 @@
+Sarah Chen
+sarah.chen@email.com | (555) 482-9102 | Seattle, WA
+
+Professional Summary
+Creative Frontend Developer with 2+ years of experience building modern, responsive, and accessible web user interfaces. Expert in JavaScript, React, and CSS design frameworks.
+
+Education
+BFA in Interaction Design, Seattle University - 2023
+
+Technical Skills
+- Programming Languages: JavaScript, TypeScript, HTML5, CSS3
+- Frontend Libraries: React, Redux Toolkit, Next.js, jQuery
+- Stylesheets & Tooling: Tailwind CSS, Sass, Bootstrap, Webpack
+- Tools: Git, GitHub, Figma, VS Code
+- Soft Skills: Communication, Design Thinking, Collaboration
+
+Professional Experience
+Frontend Developer | PixelCraft Solutions | 2023 - Present
+- Responsible for implementing responsive UI elements based on design mockups in Figma.
+- Worked on optimizing frontend bundle sizes, improving page load speeds by 25%.
+- Helped with CSS bug resolutions and styling structure refactoring using Tailwind CSS.
+- Handled state management across the dashboard application using Redux.
+
+Personal Projects
+E-Commerce UI Platform
+- Developed a complete client portal using React and Next.js, featuring dynamic catalog filters.
+- Styled interfaces with CSS Grid and flexbox layouts.

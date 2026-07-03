@@ -1,0 +1,27 @@
+John Davis
+john.davis@email.com | (555) 732-8491 | Austin, TX
+
+Professional Summary
+Data Scientist with expertise in statistical data analysis, machine learning modeling, and database management. Passionate about extracting insights from complex business datasets.
+
+Education
+MS in Data Science, University of Texas at Austin - 2022
+
+Technical Skills
+- Analytics Programming: Python, R, SQL
+- Data Science Libraries: Pandas, NumPy, Scikit-learn, SciPy
+- Visualization: Tableau, Power BI, Matplotlib, Seaborn
+- Databases & Big Data: PostgreSQL, MongoDB, Apache Spark
+- Core Concepts: Machine Learning, A/B Testing, Predictive Analytics
+
+Professional Experience
+Data Analyst | Insight Analytics Co. | 2022 - Present
+- Responsible for querying relational databases using SQL to extract business metrics.
+- Helped with building statistical models to predict customer churn rates using Scikit-learn.
+- Worked on Tableau dashboards to present product performance metrics to stakeholders.
+- Managed database migration tasks from SQLite to PostgreSQL.
+
+Personal Projects
+Housing Price Predictor
+- Engineered a machine learning regression model to predict Texas housing trends.
+- Cleaned and preprocessed raw datasets using Pandas and NumPy.
